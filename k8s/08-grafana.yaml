@@ -14,6 +14,25 @@ data:
         isDefault: true
         editable: true
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-providers
+  namespace: enterprise-rag
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'Enterprise RAG Dashboards'
+        orgId: 1
+        folder: 'AI & Knowledge Assistant'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -54,12 +73,22 @@ spec:
           volumeMounts:
             - name: datasources-volume
               mountPath: /etc/grafana/provisioning/datasources
+            - name: providers-volume
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: dashboards-volume
+              mountPath: /var/lib/grafana/dashboards
             - name: grafana-storage
               mountPath: /var/lib/grafana
       volumes:
         - name: datasources-volume
           configMap:
             name: grafana-datasources
+        - name: providers-volume
+          configMap:
+            name: grafana-dashboard-providers
+        - name: dashboards-volume
+          configMap:
+            name: grafana-dashboards
         - name: grafana-storage
           emptyDir: {}
 ---
