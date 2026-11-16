@@ -4,7 +4,6 @@ test_api.py — Integration Tests for FastAPI Endpoints & Guardrails
 Tests healthz, Prometheus metrics, stats, and guardrail interception via TestClient.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 from src.api import app
 
