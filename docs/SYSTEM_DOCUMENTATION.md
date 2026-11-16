@@ -253,6 +253,12 @@ Custom enterprise metrics exposed at `/metrics`:
 - `rag_guardrail_blocks_total{layer="pipeline", reason="..."}` (Counter)
 - `rag_chunks_indexed_total{source_file="..."}` (Counter/Gauge)
 
+#### Grafana Visual Analytics & Dashboards (`monitoring/grafana/`)
+Grafana is pre-configured with auto-provisioned Prometheus datasources and a tailored executive dashboard (`rag_overview.json`) providing:
+- **Stat Cards:** Total Queries Handled, Security Injections Blocked (highlighted red), Vector Chunks in Qdrant, and Avg Latency.
+- **Time Series Graphs:** Live Query Traffic Rate (queries/sec) and Latency Quantiles (p50 & p95).
+- **Access Point:** `http://localhost:3000` (Default credentials: `admin` / `admin`).
+
 ---
 
 ## 4. Infrastructure, Containerization & Kubernetes
@@ -292,7 +298,8 @@ k8s/
 ├── 04-rag-app-deployment.yaml  # 2 Replicas, RollingUpdate, Liveness/Readiness Probes
 ├── 05-rag-app-service.yaml     # Internal ClusterIP Service for RAG API (Port 8000)
 ├── 06-ingress.yaml             # NGINX Ingress Controller with SSL termination
-└── 07-monitoring.yaml          # Prometheus Deployment, ServiceAccount, RBAC & Service
+├── 07-monitoring.yaml          # Prometheus Deployment, ServiceAccount, RBAC & Service
+└── 08-grafana.yaml             # Grafana Deployment, Datasource ConfigMap & Service
 ```
 
 #### Key Kubernetes Design Highlights:
@@ -304,6 +311,8 @@ k8s/
    - Deployed as a `StatefulSet` with dynamic `volumeClaimTemplates` (10Gi persistent volume) ensuring vector embeddings survive pod restarts.
 3. **RBAC Security (`07-monitoring.yaml`):**
    - Prometheus runs under a dedicated `ServiceAccount` bound to a least-privilege `Role` and `RoleBinding` allowing it to scrape metrics without cluster-wide permissions.
+4. **Grafana Visualization (`08-grafana.yaml`):**
+   - Self-configuring dashboard and Prometheus datasource connected via in-cluster DNS (`prometheus-service.enterprise-rag.svc.cluster.local:9090`).
 
 ---
 

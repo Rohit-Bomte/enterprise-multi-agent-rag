@@ -61,6 +61,26 @@ services:
     networks:
       - rag-network
 
+  # ── Grafana Visual Analytics & Dashboards ───────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: enterprise-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - rag-network
+
 networks:
   rag-network:
     driver: bridge
@@ -70,3 +90,5 @@ volumes:
     name: qdrant_storage_vol
   prometheus_data:
     name: prometheus_data_vol
+  grafana_data:
+    name: grafana_data_vol

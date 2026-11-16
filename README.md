@@ -9,6 +9,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Cloud--Native-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io/)
+[![Grafana](https://img.shields.io/badge/Grafana-Dashboards-F46800?logo=grafana&logoColor=white)](https://grafana.com/)
 [![CI Pipeline](https://github.com/Rohit-Bomte/enterprise-multi-agent-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/Rohit-Bomte/enterprise-multi-agent-rag/actions/workflows/ci.yml)
 [![CD Pipeline](https://github.com/Rohit-Bomte/enterprise-multi-agent-rag/actions/workflows/cd.yml/badge.svg)](https://github.com/Rohit-Bomte/enterprise-multi-agent-rag/actions/workflows/cd.yml)
 
@@ -218,6 +219,7 @@ The included `docker-compose.yml` deploys the full stack:
 - **`rag-api`**: The Multi-Agent RAG FastAPI microservice (port 8000)
 - **`qdrant`**: Dedicated Vector Database with persistent storage (ports 6333, 6334)
 - **`prometheus`**: Observability agent scraping `/metrics` (port 9090)
+- **`grafana`**: Visual analytics and dashboard UI with pre-provisioned Prometheus datasource (port 3000)
 
 ```powershell
 # Build and run all services
@@ -232,8 +234,9 @@ docker compose ps
 
 Access points:
 - **Web UI & API**: [http://localhost:8000](http://localhost:8000)
-- **Qdrant Dashboard**: [http://localhost:6333/dashboard](http://localhost:6333/dashboard)
+- **Grafana Visual Dashboard**: [http://localhost:3000](http://localhost:3000) *(User/Pass: `admin`/`admin`)*
 - **Prometheus Console**: [http://localhost:9090](http://localhost:9090)
+- **Qdrant Dashboard**: [http://localhost:6333/dashboard](http://localhost:6333/dashboard)
 
 ---
 
@@ -262,7 +265,14 @@ kubectl get services -n enterprise-rag
 
 ### 4. Port Forward to Access Locally
 ```powershell
-kubectl port-forward svc/rag-api-service 8000:8000 -n enterprise-rag
+# Forward Application Web UI
+kubectl port-forward -n enterprise-rag svc/rag-api-service 8000:8000
+
+# Forward Grafana Visual Dashboard
+kubectl port-forward -n enterprise-rag svc/grafana-service 3000:3000
+
+# Forward Prometheus Telemetry
+kubectl port-forward -n enterprise-rag svc/prometheus-service 9090:9090
 ```
 
 ---
