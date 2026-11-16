@@ -18,6 +18,8 @@
 
 The platform is designed with a **defense-in-depth security framework** (aligned with the OWASP LLM Top 10), hybrid semantic and lexical retrieval (Dense Vectors + BM25 + Reciprocal Rank Fusion + Local Cross-Encoder Reranker), cloud-native containerization, and centralized Prometheus metrics and structured JSON logging.
 
+> 📖 **Comprehensive System Documentation:** For an exhaustive, deep-dive architectural breakdown of every module, engineering decisions, post-mortem incident logs, and runbooks, read the [System Architecture & Engineering Guide](docs/SYSTEM_DOCUMENTATION.md).
+
 ---
 
 ## 🏛️ End-to-End Architecture
