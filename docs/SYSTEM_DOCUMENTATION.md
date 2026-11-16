@@ -28,6 +28,7 @@
 6. [Adversarial Testing & Security Validation](#6-adversarial-testing--security-validation)
 7. [Engineering Post-Mortem & Solved Challenges](#7-engineering-post-mortem--solved-challenges)
 8. [Operator Runbook & Maintenance Guide](#8-operator-runbook--maintenance-guide)
+9. [CI/CD Automation & GitHub Actions Pipeline](#9-cicd-automation--github-actions-pipeline)
 
 ---
 
@@ -432,6 +433,61 @@ kubectl port-forward -n enterprise-rag svc/prometheus-service 9090:9090
 # Run the complete test suite
 pytest tests/ -v
 ```
+
+---
+
+## 9. CI/CD Automation & GitHub Actions Pipeline
+
+The repository implements automated Continuous Integration (CI) and Continuous Delivery (CD) pipelines located in `.github/workflows/`.
+
+```
+  [ Developer pushes code / Opens PR ]
+                  │
+                  ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                   CI PIPELINE (.github/workflows/ci.yml)         │
+│                                                                  │
+│  Job 1: Lint & Syntax Check (Ruff + Python compileall)           │
+│  Job 2: Adversarial & API Security Tests (Pytest 21/21 suite)    │
+│  Job 3: Kubernetes Manifest Dry-Run Validation (kubectl dry-run) │
+└─────────────────────────────────┬────────────────────────────────┘
+                                  │ (Only on merge to 'main')
+                                  ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                   CD PIPELINE (.github/workflows/cd.yml)         │
+│                                                                  │
+│  1. Multi-Platform Container Setup (QEMU + Docker Buildx)        │
+│  2. Build Multi-Stage Production Image (Dockerfile)              │
+│  3. Publish to GitHub Container Registry (ghcr.io)               │
+│  4. Automatic Image Tagging (':latest' & ':sha-<commit>')        │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### 9.1 Continuous Integration (`.github/workflows/ci.yml`)
+- **Triggers:** Every `push` or `pull_request` targeting `main`.
+- **Quality Gates:**
+  1. **Linting & Code Quality:** Runs `ruff check` and `python -m compileall` to verify syntax and enforce code standards.
+  2. **Security & Guardrail Verification:** Executes the complete 21-test suite in `tests/test_adversarial.py` and `tests/test_api.py`, mathematically proving that prompt injections, jailbreaks, and canary token leaks are blocked before merging.
+  3. **Kubernetes Validation:** Runs `kubectl apply --dry-run=client -f k8s/` against an automated cluster validator to ensure all 8 YAML manifests are free of syntax and schema errors.
+
+### 9.2 Continuous Delivery (`.github/workflows/cd.yml`)
+- **Triggers:** Automatically runs on every merge to `main` modifying application code, dependencies, or the Dockerfile.
+- **Delivery Steps:**
+  1. **Buildx Layer Caching:** Utilizes GitHub Actions cache (`type=gha`) for rapid, incremental Docker builds.
+  2. **GHCR Publishing:** Authenticates securely via `GITHUB_TOKEN` and pushes to **GitHub Container Registry**:
+     ```text
+     ghcr.io/<username>/enterprise-multi-agent-rag:latest
+     ghcr.io/<username>/enterprise-multi-agent-rag:sha-<commit>
+     ```
+  3. **Production Distribution:** Enables any developer or Kubernetes cluster worldwide to pull the verified image directly:
+     ```powershell
+     docker pull ghcr.io/rohit-bomte/enterprise-multi-agent-rag:latest
+     ```
+
+### 9.3 Repository Secret Configuration
+To enable live LLM integration tests during CI runs in GitHub Actions:
+1. Navigate to your GitHub repository $\rightarrow$ **Settings** $\rightarrow$ **Secrets and variables** $\rightarrow$ **Actions**.
+2. Add a new repository secret named `GEMINI_API_KEY` containing your Google AI Studio API key.
 
 ---
 

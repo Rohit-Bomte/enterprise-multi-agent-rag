@@ -9,6 +9,8 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Cloud--Native-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io/)
+[![CI Pipeline](https://github.com/Rohit-Bomte/enterprise-multi-agent-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/Rohit-Bomte/enterprise-multi-agent-rag/actions/workflows/ci.yml)
+[![CD Pipeline](https://github.com/Rohit-Bomte/enterprise-multi-agent-rag/actions/workflows/cd.yml/badge.svg)](https://github.com/Rohit-Bomte/enterprise-multi-agent-rag/actions/workflows/cd.yml)
 
 ---
 

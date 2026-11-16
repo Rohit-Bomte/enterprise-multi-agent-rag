@@ -1,0 +1,81 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  lint-and-validate:
+    name: Code Quality & Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Linting Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Run Ruff Linter & Syntax Compilation
+        run: |
+          ruff check src/ tests/
+          python -m compileall src/ tests/
+
+  test-suite:
+    name: Adversarial & API Security Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Production & Test Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest httpx
+
+      - name: Run Automated Pytest Suite
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'ci_placeholder_key' }}
+          QDRANT_URL: ""
+          COLLECTION_NAME: "pdf_rag_ci"
+        run: |
+          pytest tests/test_adversarial.py tests/test_api.py -v
+
+  k8s-manifest-check:
+    name: Kubernetes Manifest Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Kubernetes YAML Manifests
+        uses: stefanprodan/kube-tools@v1
+        with:
+          kubectl: 1.30.0
+          command: |
+            kubectl apply --dry-run=client -f k8s/00-namespace.yaml
+            kubectl apply --dry-run=client -f k8s/01-secrets-configmap.yaml
+            kubectl apply --dry-run=client -f k8s/02-qdrant-statefulset.yaml
+            kubectl apply --dry-run=client -f k8s/03-qdrant-service.yaml
+            kubectl apply --dry-run=client -f k8s/04-rag-app-deployment.yaml
+            kubectl apply --dry-run=client -f k8s/05-rag-app-service.yaml
+            kubectl apply --dry-run=client -f k8s/06-ingress.yaml
+            kubectl apply --dry-run=client -f k8s/07-monitoring.yaml
