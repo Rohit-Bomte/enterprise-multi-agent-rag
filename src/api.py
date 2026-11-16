@@ -266,16 +266,20 @@ def upload_document(
 @app.get("/api/v1/stats", tags=["System Information"])
 def get_stats():
     """Returns vector store and pipeline metrics."""
+    count = 0
     try:
         client = get_qdrant_client()
-        count = client.count(collection_name=COLLECTION_NAME).count
-        return {
-            "collection_name": COLLECTION_NAME,
-            "total_points": count,
-            "llm_model": GEMINI_LLM_MODEL,
-            "embedding_model": GEMINI_EMBED_MODEL,
-            "architecture": "Hybrid (Dense + BM25Okapi + RRF + CrossEncoder)",
-            "guardrails": ["Input Regex Guard", "Output PII Redactor", "Document Sanitizer"],
-        }
+        cols = [c.name for c in client.get_collections().collections]
+        if COLLECTION_NAME in cols:
+            count = client.count(collection_name=COLLECTION_NAME).count
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        logger.warning(f"Could not fetch collection count: {e}", extra={"event": "stats_warn"})
+
+    return {
+        "collection_name": COLLECTION_NAME,
+        "total_points": count,
+        "llm_model": GEMINI_LLM_MODEL,
+        "embedding_model": GEMINI_EMBED_MODEL,
+        "architecture": "Hybrid (Dense + BM25Okapi + RRF + CrossEncoder)",
+        "guardrails": ["Input Regex Guard", "Output PII Redactor", "Document Sanitizer"],
+    }

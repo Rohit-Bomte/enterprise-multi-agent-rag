@@ -59,6 +59,10 @@ def get_qdrant_client():
     """
     global _qdrant_instance
     from qdrant_client import QdrantClient
+    if QDRANT_URL == ":memory:":
+        if _qdrant_instance is None:
+            _qdrant_instance = QdrantClient(":memory:")
+        return _qdrant_instance
     if QDRANT_URL:
         return QdrantClient(url=QDRANT_URL)
     if _qdrant_instance is None:
